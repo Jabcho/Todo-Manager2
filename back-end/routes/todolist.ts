@@ -8,6 +8,7 @@ import { RowDataPacket } from "mysql2";
 
 // todolist 페이지 처음 접속 시 사용자의 모든 리스트 보여주기
 router.get('/todo', logincheck, async (req: Request, res: Response) => {
+    console.log('요청 들어옴?', req.body.userIdCheck);
     try {
         const connection = await pool.getConnection();
 
@@ -57,16 +58,20 @@ router.post('/todo', logincheck, async (req: Request, res: Response) => {
 
 // todolist 삭제
 router.delete('/todo/:id', logincheck, async (req: Request, res: Response) => {
+    console.log('요청 들어옴, id는', req.params.id)
     try {
         const connection = await pool.getConnection();
 
         try {
             await connection.beginTransaction();
+            console.log('되는거맞니')
+            console.log(req.params.id)
             await connection.query(`DELETE FROM TODOLIST WHERE id = ?`, [req.params.id]);
             await connection.commit();
 
             res.sendStatus(200);
         } catch(e) {
+            console.log('에러나네')
             await connection.rollback();
             res.sendStatus(400);
         } finally {
@@ -79,15 +84,15 @@ router.delete('/todo/:id', logincheck, async (req: Request, res: Response) => {
 
 // 전체삭제
 router.delete('/todo', logincheck, async (req: Request, res: Response) => {
+    console.log('전체삭제 요청')
     try {
         const connection = await pool.getConnection();
-
+        console.log([req.body.userIdCheck])
         try {
             await connection.beginTransaction();
             await connection.query(`DELETE FROM TODOLIST where userId = ?`, [req.body.userIdCheck]);
             await connection.commit();
-
-            res.sendStatus(400);
+            res.sendStatus(200);
         } catch(e) {
             await connection.rollback();
             res.sendStatus(400);

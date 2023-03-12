@@ -1,7 +1,19 @@
 import { createApp } from 'vue'
-import './style.css'
+//import './assets/global.css'
 import App from './App.vue'
-import { store, key } from "./store";
+import { createPinia } from 'pinia'
+import { createPersistedState } from 'pinia-plugin-persistedstate'
 import router from "./router";
 
-createApp(App).use(store, key).use(router).mount('#app')
+import { OhVueIcon, addIcons } from "oh-vue-icons"
+import { BiCheckCircle, CoDelete, FaUserAlt, FaLock } from "oh-vue-icons/icons"
+
+addIcons(BiCheckCircle, CoDelete, FaUserAlt, FaLock );
+
+const pinia = createPinia();
+const PersistedState = createPersistedState();
+pinia.use((context) => PersistedState(context))
+
+const app = createApp(App);
+app.component("v-icon", OhVueIcon)
+app.use(pinia).use(router).mount('#app')

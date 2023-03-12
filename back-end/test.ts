@@ -19,3 +19,38 @@ console.log(timeStr);
 // 2. 다른 nodejs 프로그램을 새로 만들어서 주기적으로 돌린다
 // 3. 운영체제 차원에서 제공하는 기능(cron/crontab)을 사용한다.
 // 4. mariadb? PostgreSQL
+
+
+
+// session 설정
+import session, { MemoryStore } from "express-session";
+import type { SessionOptions, CookieOptions } from "express-session";
+import connectRedis from "connect-redis";
+const RedisStore = connectRedis(session);
+
+import { createClient } from "redis";
+const redisClient = createClient({
+    legacyMode: true
+}).connect().catch(console.error);
+
+const sessionOptions: SessionOptions = {
+    secret: secret.sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        maxAge: 1000 * 60 * 30
+    },
+    rolling: true,
+    store: new MemoryStore()
+    /*new RedisStore({
+        client: redisClient
+    })*/
+} 
+app.use(session(sessionOptions));
+
+declare module 'express-session' {
+    interface SessionData {
+        userId: string;
+    }
+}

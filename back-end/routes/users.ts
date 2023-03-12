@@ -14,10 +14,29 @@ import { format } from "path";
 // 회원가입 --> 중복/인증은 이미 다 끝난 상태
 // 완료되면 user_certi의 data delete?
 router.post('/signup', async(req: Request, res: Response) => {
+
+    const email = req.body.email;
+    const name = req.body.name;
+    const userId = req.body.userId;
     const inputPw = req.body.userPw;
+
+    // PW Hash화 + 소금치기
     const salt = Math.round((new Date().valueOf() * Math.random())) + "";
     const hashPw = crypto.createHash("sha512").update(inputPw + salt).digest("hex");
-    console.log(req.body)
+
+    // random verification code generation
+    let authCode = Math.random().toString().substring(2, 8);
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = ('0' + (now.getMonth() + 1)).slice(-2);
+    const day = ('0' + now.getDate()).slice(-2);
+    const hour = ('0' + now.getHours()).slice(-2);
+    const min = ('0' + now.getMinutes()).slice(-2);
+    const sec = ('0' + now.getSeconds()).slice(-2);
+
+    const timeStr = year + '-' + month + '-' + day + " " + hour + ":" + min + ":" + sec;
+
 
     try {
         const connection = await pool.getConnection();
@@ -25,13 +44,26 @@ router.post('/signup', async(req: Request, res: Response) => {
         try {
             
             await connection.beginTransaction();
-            await connection.query(`INSERT INTO users (name, userId, hashpw, email, salt) VALUES (?, ?, ?, ?, ?)`, [req.body.userId, req.body.userId, hashPw, req.body.email, salt]);
+            //await connection.query(`INSERT INTO users (name, userId, hashpw, email, salt) VALUES (?, ?, ?, ?, ?)`, [req.body.userId, req.body.userId, hashPw, req.body.email, salt]);
+
+            // 이메일 중복여부 확인
+            const [row] = await connection.query(`SELECT email FROM users WHERE email = ?`, [email]);
+            console.log(row)
+            if ((row as RowDataPacket).length > 0) {
+                sendEmail(email, authCode, "NO");
+            } else {
+                sendEmail(email, authCode, "OK"); 
+
+                // user_certi에 일시적으로 정보 넣어두기
+                // await connection.beginTransaction();
+                await connection.query(`INSERT INTO user_certi (email, code, time, name, userId, hashpw, salt) VALUES (?, ?, ?, ?, ?, ?, ?)`, [email, authCode, timeStr, name, userId, hashPw, salt]);
+                //await connection.commit();
+            }
             await connection.commit();
 
             res.sendStatus(200); // front는 200을 받으면 화면 전환
         } catch(e) {
             await connection.rollback();
-            console.log(e)
             res.sendStatus(400);
         } finally {
             connection.release();
@@ -41,7 +73,8 @@ router.post('/signup', async(req: Request, res: Response) => {
     }
 })
 
-// 이메일 인증 ==> 
+// 이메일 인증 ==> 필요없어!
+/*
 router.get('/auth/:email', async (req: Request, res: Response) => {
     const email = req.params.email;
     try {
@@ -90,6 +123,7 @@ router.get('/auth/:email', async (req: Request, res: Response) => {
         res.sendStatus(400);
     }
 })
+*/
 
 router.post('/auth', async(req: Request, res:Response) => {
     const userEmail = req.body.email;
@@ -104,36 +138,37 @@ router.post('/auth', async(req: Request, res:Response) => {
     const sec = ('0' + now.getSeconds()).slice(-2);
 
     const timeStr = year + '-' + month + '-' + day + " " + hour + ":" + min + ":" + sec;
-    console.log(req.body)
+
     try {
         const connection = await pool.getConnection();
-        console.log('hey')
+
         try {
             await connection.beginTransaction();
-            console.log('sdsfsdfsdf')
-            const [row] = await connection.query(`SELECT code, time FROM user_certi WHERE email = ?`, [userEmail])
-            console.log(row)
+            const [row] = await connection.query(`SELECT * FROM user_certi WHERE email = ?`, [userEmail])
+
             const authCode = (row as RowDataPacket)[0].code;
             const time = (row as RowDataPacket)[0].time;
-            await connection.commit();
-            console.log(timeStr, time)
-            console.log(Date.parse(timeStr), Date.parse(time))
+            //await connection.commit();
+            
             if (Date.parse(timeStr) - Date.parse(time) > 1000 * 60 * 1000/*timeStr과 now의 시간차이가 3분 이상이면*/) {
-                console.log('this');
+                await connection.query(`DELETE FROM user_certi WHERE email = ?`, [userEmail]);
                 res.sendStatus(401);
             } else {
-                console.log('this2');
-                console.log(userAuthCode)
-                console.log(authCode)
+                
                 if (userAuthCode === authCode) {
+                    const name = (row as RowDataPacket)[0].name;
+                    const userId = (row as RowDataPacket)[0].userId;
+                    const hashpw = (row as RowDataPacket)[0].hashpw;
+                    const salt = (row as RowDataPacket)[0].salt;
+
                     await connection.beginTransaction();
-                    await connection.query(`UPDATE user_certi SET verification = '1'`);
-                    await connection.commit();
+                    await connection.query(`INSERT INTO users (name, userId, hashpw, email, salt) VALUES (?, ?, ?, ?, ?)`, [name, userId, hashpw, userEmail, salt]);
                     res.sendStatus(200);
                 } else {
                     res.sendStatus(400);
                 }
             }
+            await connection.commit();
         } catch(e) {
             await connection.rollback();
             res.sendStatus(400);

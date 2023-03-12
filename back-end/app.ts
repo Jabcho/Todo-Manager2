@@ -39,7 +39,7 @@ const sessionOptions: SessionOptions = {
     })*/
 } 
 app.use(session(sessionOptions));
-``
+
 declare module 'express-session' {
     interface SessionData {
         userId: string;
@@ -52,6 +52,7 @@ app.use(express.static(path.join(__dirname, "public")))
 
 
 app.get("/", (req: Request, res: Response) => {
+    console.log(req);
     res.send(__dirname + "/index.html");
 })
 
