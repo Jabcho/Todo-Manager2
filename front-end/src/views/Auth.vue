@@ -12,6 +12,8 @@ const email = ref(String(route.query.email));
 const authCode = ref();
 
 const auth = (async () => {
+    console.log("fkffk")
+    console.log(authCode)
     if (authCode === null) {
         alert('인증번호를 입력해 주세요');
         return;
@@ -41,7 +43,7 @@ const auth = (async () => {
         <p>인증번호를 입력해 주세요</p>
         <div class="auth-container">
             <input v-model="authCode" v-on:keyup.enter="auth" type="text">
-            <button>Send</button>
+            <button @click="auth">Send</button>
         </div>
 
     </div>

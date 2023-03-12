@@ -127,7 +127,7 @@ router.get('/auth/:email', async (req: Request, res: Response) => {
 
 router.post('/auth', async(req: Request, res:Response) => {
     const userEmail = req.body.email;
-    const userAuthCode = req.body.authCode;
+    const userAuthCode = Number(req.body.authCode);
     const now = new Date();
 
     const year = now.getFullYear();
@@ -149,6 +149,11 @@ router.post('/auth', async(req: Request, res:Response) => {
             const authCode = (row as RowDataPacket)[0].code;
             const time = (row as RowDataPacket)[0].time;
             //await connection.commit();
+
+            console.log(userAuthCode);
+            console.log(authCode);
+            console.log(typeof(userAuthCode));
+            console.log(typeof(authCode));
             
             if (Date.parse(timeStr) - Date.parse(time) > 1000 * 60 * 1000/*timeStr과 now의 시간차이가 3분 이상이면*/) {
                 await connection.query(`DELETE FROM user_certi WHERE email = ?`, [userEmail]);
@@ -163,6 +168,7 @@ router.post('/auth', async(req: Request, res:Response) => {
 
                     await connection.beginTransaction();
                     await connection.query(`INSERT INTO users (name, userId, hashpw, email, salt) VALUES (?, ?, ?, ?, ?)`, [name, userId, hashpw, userEmail, salt]);
+                    await connection.query(`DELETE FROM user_certi WHERE email = ?`, [userEmail]);
                     res.sendStatus(200);
                 } else {
                     res.sendStatus(400);
