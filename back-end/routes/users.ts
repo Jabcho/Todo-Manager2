@@ -48,7 +48,6 @@ router.post('/signup', async(req: Request, res: Response) => {
 
             // 이메일 중복여부 확인
             const [row] = await connection.query(`SELECT email FROM users WHERE email = ?`, [email]);
-            console.log(row)
             if ((row as RowDataPacket).length > 0) {
                 sendEmail(email, authCode, "NO");
             } else {
@@ -149,13 +148,8 @@ router.post('/auth', async(req: Request, res:Response) => {
             const authCode = (row as RowDataPacket)[0].code;
             const time = (row as RowDataPacket)[0].time;
             //await connection.commit();
-
-            console.log(userAuthCode);
-            console.log(authCode);
-            console.log(typeof(userAuthCode));
-            console.log(typeof(authCode));
             
-            if (Date.parse(timeStr) - Date.parse(time) > 1000 * 60 * 1000/*timeStr과 now의 시간차이가 3분 이상이면*/) {
+            if (Date.parse(timeStr) - Date.parse(time) > 1000 * 60 * 10/*timeStr과 now의 시간차이가 3분 이상이면*/) {
                 await connection.query(`DELETE FROM user_certi WHERE email = ?`, [userEmail]);
                 res.sendStatus(401);
             } else {
@@ -196,7 +190,6 @@ router.get('/signup/check/:userId', async (req: Request, res: Response) => {
         try {
             await connection.beginTransaction();
             const [result] = await connection.query(`SELECT userId FROM users WHERE userId=?`, [req.params.userId])
-            console.log(result)
             if ((result as RowDataPacket).length === 0) {
                 res.sendStatus(200);
                 /*

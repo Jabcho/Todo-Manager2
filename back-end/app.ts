@@ -30,7 +30,7 @@ const sessionOptions: SessionOptions = {
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        maxAge: 1000 * 60 * 30
+        maxAge: 1000 * 60 * 1
     },
     rolling: true,
     store: new MemoryStore()

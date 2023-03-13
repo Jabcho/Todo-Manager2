@@ -5,7 +5,6 @@ import { useTodoListStore } from '@/store/index'
 const todoListStore = useTodoListStore();
 
 const todoItems = computed(() => {
-    console.log('에라이', todoListStore.todoItems);
     return todoListStore.todoItems;
 })
 
@@ -14,10 +13,9 @@ const removeTodo = (id: number) => {
 }
 
 const clearAllTodo = () => {
-    console.log("ㅅㅂ")
-    // if (!confirm("Do you really want to delete all??")){
-    //     return
-    // }
+    if (!confirm("Do you really want to delete all??")){
+        return
+    }
     todoListStore.clearAll();
 }
 

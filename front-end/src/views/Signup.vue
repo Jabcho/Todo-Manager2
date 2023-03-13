@@ -55,12 +55,15 @@ const blankCheck = () => {
 
 const signUp = (async() => {
     if (blankCheck()) {
+        isBlank.value = false;
         return;
     }
     if (userStore.usedId === false) {
         alert('아이디 중복여부를 확인해주세요');
         return;
     }
+
+    userStore.usedId = false; // 다음번 진행을 위한 초기화
 
     const result = await signupStore.signUp(userName.value, userId.value, userPw.value, userEmail.value)
 

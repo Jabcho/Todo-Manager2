@@ -51,6 +51,8 @@ export const useTodoListStore = defineStore('todoList', {
                     userStore.isLoggined = false;
                     alert("다시 로그인해 주세요")
                     router.replace("/");
+                    return
+
                 }
                 console.log('뭔가 틀리긴 함');
             }
@@ -87,6 +89,7 @@ export const useTodoListStore = defineStore('todoList', {
             } catch (err: any) {
                 const userStore = useUserStore();
                 if (err.response.status == 401) {
+                    console.log(err.response.status)
                     userStore.isLoggined = false;
                     alert("다시 로그인해 주세요")
                     router.replace("/");
@@ -141,6 +144,15 @@ export const useUserStore = defineStore('user', {
         async userIdCheck(userId: string) {
             try {
                 await axios.get(`/api/users/signup/check/${userId}`);
+                return true;
+            } catch(err) {
+                console.log(err);
+                return false;
+            }
+        },
+        async logout() {
+            try {
+                await axios.get('/api/users/logout');
                 return true;
             } catch(err) {
                 console.log(err);

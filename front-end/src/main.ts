@@ -6,9 +6,9 @@ import { createPersistedState } from 'pinia-plugin-persistedstate'
 import router from "./router";
 
 import { OhVueIcon, addIcons } from "oh-vue-icons"
-import { BiCheckCircle, CoDelete, FaUserAlt, FaLock } from "oh-vue-icons/icons"
+import { BiCheckCircle, CoDelete, FaUserAlt, FaLock, RiCalendarTodoFill, LaSlackHash, HiViewList, IoCloseCircleOutline } from "oh-vue-icons/icons"
 
-addIcons(BiCheckCircle, CoDelete, FaUserAlt, FaLock );
+addIcons(BiCheckCircle, CoDelete, FaUserAlt, FaLock, RiCalendarTodoFill, LaSlackHash, HiViewList, IoCloseCircleOutline );
 
 const pinia = createPinia();
 const PersistedState = createPersistedState();
