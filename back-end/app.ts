@@ -46,14 +46,12 @@ declare module 'express-session' {
     }
 }
 
-// static file
-import path from "path";
-app.use(express.static(path.join(__dirname, "public")))
+
 
 
 app.get("/", (req: Request, res: Response) => {
     console.log(req);
-    res.send(__dirname + "/index.html");
+    res.send(__dirname + "/public/index.html");
 })
 
 
